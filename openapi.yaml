@@ -1,0 +1,221 @@
+openapi: 3.1.0
+info:
+  title: MetaSmart API
+  version: 1.0.0
+  description: Send approved WhatsApp templates from your applications through MetaSmart.
+servers:
+  - url: https://wh.linkplease.in/public/v1
+    description: Production
+security:
+  - ApiKeyAuth: []
+paths:
+  /templates:
+    get:
+      operationId: listTemplates
+      summary: List approved templates
+      description: Returns the approved templates available for API sending in this workspace.
+      tags: [Templates]
+      responses:
+        '200':
+          description: Approved templates, sorted by name.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Template'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          description: The API key exceeded its per-minute request limit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /messages/template:
+    post:
+      operationId: sendTemplateMessage
+      summary: Send a template message
+      description: |
+        Sends an approved WhatsApp template to a phone number. MetaSmart creates
+        the contact and conversation when they do not already exist. The API key
+        must have the `messages:send` scope.
+      tags: [Messages]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateMessageRequest'
+            examples:
+              appointmentReminder:
+                summary: Appointment reminder
+                value:
+                  phone: '+919876543210'
+                  template_id: 66f17ef3bc9f9d23d0561a91
+                  variables: [Ayush, '4:30 PM']
+      responses:
+        '201':
+          description: The template was accepted by WhatsApp.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateMessageResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: The template does not exist in this workspace.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: WhatsApp is not connected, or the template is not approved or sendable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: The phone number is invalid or template variables are incomplete.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+        '429':
+          description: The API key exceeded its per-minute request limit.
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: The API rate limiter is temporarily unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: A MetaSmart API key with the `messages:send` scope.
+  schemas:
+    Template:
+      type: object
+      required: [id, name, language, category, variable_count]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        language:
+          type: string
+        category:
+          type: string
+          enum: [MARKETING, UTILITY, AUTHENTICATION]
+        variable_count:
+          type: integer
+          minimum: 0
+        header_format:
+          type: [string, 'null']
+          enum: [TEXT, IMAGE, VIDEO, DOCUMENT, null]
+    TemplateMessageRequest:
+      type: object
+      additionalProperties: false
+      required: [phone, template_id]
+      properties:
+        phone:
+          type: string
+          description: Recipient number in international format. A leading `+` is recommended.
+          examples: ['+919876543210']
+        template_id:
+          type: string
+          description: The MetaSmart ID of an approved template in your workspace.
+          examples: [66f17ef3bc9f9d23d0561a91]
+        variables:
+          type: array
+          description: Body and dynamic-button values in numbered template order. Supply an empty array when the template has none.
+          items:
+            type: string
+          default: []
+          examples:
+            - [Ayush, '4:30 PM']
+    TemplateMessageResponse:
+      type: object
+      required: [conversation_id, message]
+      properties:
+        conversation_id:
+          type: string
+        message:
+          $ref: '#/components/schemas/Message'
+    Message:
+      type: object
+      required: [id, platform, direction, type, status, created_at]
+      properties:
+        id:
+          type: string
+        platform:
+          type: string
+          const: whatsapp
+        direction:
+          type: string
+          const: out
+        type:
+          type: string
+          examples: [template]
+        body:
+          type: [string, 'null']
+        media:
+          type: [object, 'null']
+          additionalProperties: true
+        template_name:
+          type: [string, 'null']
+        status:
+          type: string
+          examples: [sent]
+        error_code:
+          type: [string, 'null']
+        error_detail:
+          type: [string, 'null']
+        created_at:
+          type: string
+          format: date-time
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+    ValidationError:
+      type: object
+      properties:
+        detail:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: object
+                additionalProperties: true
+  responses:
+    Unauthorized:
+      description: The API key is missing, malformed, or revoked.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: The API key does not have the `messages:send` scope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

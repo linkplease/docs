@@ -1,0 +1,35 @@
+---
+title: "Authentication"
+description: "Authenticate MetaSmart API requests with scoped API keys."
+---
+
+Pass your API key in the `X-API-Key` request header.
+
+```http
+X-API-Key: lp_live_your_api_key
+```
+
+API keys belong to one MetaSmart workspace. Template messages can only use the connected WhatsApp number and templates owned by that workspace.
+
+## Scopes
+
+The template-send endpoint requires:
+
+| Scope | Access |
+| --- | --- |
+| `messages:send` | Send approved WhatsApp templates |
+
+## Key safety
+
+- Create separate keys for production and testing integrations.
+- Keep keys on your server and out of source control.
+- Revoke a key immediately if it may have been exposed.
+- Rotate keys without reusing the old value.
+
+<Warning>
+  MetaSmart shows a newly created key only once and stores only a one-way hash.
+</Warning>
+
+## Rate limits
+
+Each key is limited to 600 requests per minute by default. A limited request returns `429` and a `Retry-After` header.

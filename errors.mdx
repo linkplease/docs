@@ -1,0 +1,27 @@
+---
+title: "Errors"
+description: "Understand MetaSmart API status codes and retry behavior."
+---
+
+Errors use FastAPI's standard JSON envelope:
+
+```json
+{
+  "detail": "Template variables are incomplete"
+}
+```
+
+| Status | Meaning | What to do |
+| --- | --- | --- |
+| `400` | WhatsApp rejected the send | Inspect `detail`; correct the provider or account issue before retrying. |
+| `401` | Invalid API key | Check the `X-API-Key` header or create a replacement key. |
+| `403` | Missing scope | Create a key with `messages:send`. |
+| `404` | Template not found | Use a template ID from the same workspace. |
+| `409` | Channel or template is not sendable | Connect WhatsApp, wait for approval, or repair the template's media asset. |
+| `422` | Invalid phone or variables | Use international phone format and supply every required variable. |
+| `429` | Rate limit exceeded | Wait for the `Retry-After` duration and retry with backoff. |
+| `503` | Rate limiter unavailable | Retry later with exponential backoff. |
+
+## Retry guidance
+
+Retry `429` and `503` responses with backoff. Do not automatically retry provider rejection errors: an ambiguous provider response can risk sending a duplicate WhatsApp message.

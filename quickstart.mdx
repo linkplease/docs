@@ -1,47 +1,55 @@
 ---
 title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+description: "Send your first WhatsApp template through MetaSmart."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+## 1. Create an API key
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+Open **MetaSmart → Developer API**, create a key, and enable **Send messages**. Copy the key immediately; MetaSmart only displays it once.
 
-## Prerequisites
+## 2. Choose an approved template
 
-Before you begin, you must have:
+List the approved templates available to your key:
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+```bash
+curl https://wh.linkplease.in/public/v1/templates \
+  --header "X-API-Key: $METASMART_API_KEY"
+```
 
-## Get started
+Use the returned `id` as `template_id`. Supply exactly `variable_count` values in `{{1}}`, `{{2}}`, and subsequent numbered order.
 
-<Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+## 3. Send the request
 
-    ```bash
-    npm install your-package
-    ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+```bash
+curl https://wh.linkplease.in/public/v1/messages/template \
+  --request POST \
+  --header "X-API-Key: $METASMART_API_KEY" \
+  --header "Content-Type: application/json" \
+  --data '{
+    "phone": "+919876543210",
+    "template_id": "66f17ef3bc9f9d23d0561a91",
+    "variables": ["Ayush", "4:30 PM"]
+  }'
+```
 
-    ```bash
-    your-cli init
-    ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+A successful request returns `201 Created` with the MetaSmart conversation and message details.
 
-    ```bash
-    your-cli start
-    ```
-  </Step>
-</Steps>
+```json
+{
+  "conversation_id": "66f18066bc9f9d23d0561ab2",
+  "message": {
+    "id": "66f18066bc9f9d23d0561ab3",
+    "platform": "whatsapp",
+    "direction": "out",
+    "type": "template",
+    "body": "Hi Ayush, your appointment is at 4:30 PM.",
+    "template_name": "appointment_reminder",
+    "status": "sent",
+    "created_at": "2026-09-28T10:30:00Z"
+  }
+}
+```
 
 <Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
-
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
+  Store API keys in a secret manager or server environment variable. Never place one in browser code or a mobile application.
 </Tip>
