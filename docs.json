@@ -7,7 +7,7 @@
     "light": "#6366F1",
     "dark": "#4338CA"
   },
-  "favicon": "https://chat.linkplease.in/metasmart-favicon.png",
+  "favicon": "https://app.metasmart.io/metasmart-favicon.png",
   "navigation": {
     "tabs": [
       {
@@ -38,12 +38,12 @@
     "primary": {
       "type": "button",
       "label": "Open MetaSmart",
-      "href": "https://chat.linkplease.in"
+      "href": "https://app.metasmart.io"
     }
   },
   "footer": {
     "socials": {
-      "website": "https://chat.linkplease.in"
+      "website": "https://app.metasmart.io"
     }
   }
 }

@@ -12,7 +12,7 @@ Open **MetaSmart → Developer API**, create a key, and enable **Send messages**
 List the approved templates available to your key:
 
 ```bash
-curl https://wh.linkplease.in/public/v1/templates \
+curl https://prod.api.metasmart.io/public/v1/templates \
   --header "X-API-Key: $METASMART_API_KEY"
 ```
 
@@ -21,7 +21,7 @@ Use the returned `id` as `template_id`. Supply exactly `variable_count` values i
 ## 3. Send the request
 
 ```bash
-curl https://wh.linkplease.in/public/v1/messages/template \
+curl https://prod.api.metasmart.io/public/v1/messages/template \
   --request POST \
   --header "X-API-Key: $METASMART_API_KEY" \
   --header "Content-Type: application/json" \

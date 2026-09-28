@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: Send approved WhatsApp templates from your applications through MetaSmart.
 servers:
-  - url: https://wh.linkplease.in/public/v1
+  - url: https://prod.api.metasmart.io/public/v1
     description: Production
 security:
   - ApiKeyAuth: []
